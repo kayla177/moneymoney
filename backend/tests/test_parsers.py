@@ -3,6 +3,7 @@
 These lock in the formats we've actually seen:
 - Scotia Interac Debit alert: amount + time, no merchant, no date in body.
 - RBC Interac e-Transfer (outgoing): amount, date, recipient name, message.
+- RBC credit card purchase alert: amount, date, merchant from structured fields.
 """
 
 from __future__ import annotations
@@ -13,6 +14,7 @@ from pathlib import Path
 
 from app.parsing.base import EmailMessage
 from app.parsing.etransfer import EtransferParser
+from app.parsing.rbc import RbcParser
 from app.parsing.registry import parse_email
 from app.parsing.scotia import ScotiaParser
 
@@ -38,6 +40,15 @@ def _etransfer_email() -> EmailMessage:
         body=_load("rbc_etransfer_sent.txt"),
         sender="notify@payments.interac.ca",
         date=datetime(2026, 5, 28, 14, 0),
+    )
+
+
+def _rbc_email() -> EmailMessage:
+    return EmailMessage(
+        subject="Purchase Alert from RBC Royal Bank",
+        body=_load("rbc_credit.txt"),
+        sender="donotreply@rbc.com",
+        date=datetime(2026, 5, 30, 19, 0),
     )
 
 
@@ -85,6 +96,32 @@ def test_etransfer_parses_amount_date_recipient_and_message():
     assert result.source == "etransfer"
 
 
+# ---- RBC credit card ---------------------------------------------------------
+
+
+def test_rbc_matches_its_own_email():
+    assert RbcParser().matches(_rbc_email())
+
+
+def test_rbc_does_not_match_etransfer():
+    # e-transfer body says "on behalf of RBC Royal Bank" but isn't a credit card alert.
+    assert not RbcParser().matches(_etransfer_email())
+
+
+def test_rbc_does_not_match_scotia():
+    assert not RbcParser().matches(_scotia_email(datetime(2026, 5, 20)))
+
+
+def test_rbc_parses_amount_date_and_merchant():
+    result = RbcParser().parse(_rbc_email())
+    assert result is not None
+    assert result.amount == Decimal("39.37")
+    assert result.currency == "CAD"
+    assert result.raw_merchant == "CA WONDERLAND FOODS"
+    assert result.date == datetime(2026, 5, 30)
+    assert result.source == "rbc"
+
+
 # ---- registry routing --------------------------------------------------------
 
 
@@ -94,3 +131,6 @@ def test_registry_routes_each_email_to_the_right_parser():
 
     etransfer = parse_email(_etransfer_email())
     assert etransfer is not None and etransfer.source == "etransfer"
+
+    rbc = parse_email(_rbc_email())
+    assert rbc is not None and rbc.source == "rbc"

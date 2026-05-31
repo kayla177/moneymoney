@@ -1,23 +1,59 @@
-"""RBC purchase-alert email parser.
+"""RBC Royal Bank credit-card purchase-alert parser.
 
-STATUS: stub. The real extraction logic will be written against a real RBC alert email
-(TDD) — in particular we need to confirm whether the alert names the merchant or only the
-amount. Until then `matches` returns False so the poller simply ignores RBC emails rather
-than guessing. See app/parsing/base.py for the interface.
+Real sample (sanitized) in tests/fixtures/rbc_credit.txt. The alert restates each field
+in a structured table after a narrative paragraph:
+
+    Purchase Amount:        $39.37
+    Transaction Date:        May 30, 2026
+    Transaction Description: CA WONDERLAND FOODS
+
+We extract from the structured labels (more reliable than the narrative). The narrative
+itself also names the merchant ("towards CA WONDERLAND FOODS") but only the table form is
+guaranteed to be a single line, so we use that.
 """
 
 from __future__ import annotations
 
-from app.parsing.base import EmailMessage, ParsedTransaction
+import re
+from datetime import datetime
+
+from app.parsing.base import EmailMessage, ParsedTransaction, parse_amount
+
+_AMOUNT_RE = re.compile(r"Purchase Amount:\s*([^\n]+)", re.IGNORECASE)
+_DATE_RE = re.compile(r"Transaction Date:\s*([^\n]+)", re.IGNORECASE)
+_MERCHANT_RE = re.compile(r"Transaction Description:\s*([^\n]+)", re.IGNORECASE)
 
 
 class RbcParser:
     source = "rbc"
 
     def matches(self, email: EmailMessage) -> bool:
-        # TODO: recognize RBC alert emails by sender/subject once we have a real sample.
-        return False
+        text = f"{email.subject}\n{email.body}".lower()
+        return "rbc royal bank credit card" in text
 
     def parse(self, email: EmailMessage) -> ParsedTransaction | None:
-        # TODO: extract amount / merchant / date from the real RBC alert format.
-        return None
+        amount_match = _AMOUNT_RE.search(email.body)
+        amount = parse_amount(amount_match.group(1)) if amount_match else None
+        if amount is None:
+            return None  # defensive: no confident amount -> leave for manual review
+
+        merchant_match = _MERCHANT_RE.search(email.body)
+        merchant = merchant_match.group(1).strip() if merchant_match else ""
+
+        return ParsedTransaction(
+            amount=amount,
+            currency="CAD",
+            raw_merchant=merchant,
+            date=self._parse_date(email),
+            source=self.source,
+        )
+
+    @staticmethod
+    def _parse_date(email: EmailMessage) -> datetime:
+        match = _DATE_RE.search(email.body)
+        if match:
+            try:
+                return datetime.strptime(match.group(1).strip(), "%B %d, %Y")
+            except ValueError:
+                pass
+        return email.date
