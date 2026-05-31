@@ -17,7 +17,7 @@ COPY backend/ ./
 # main.py looks for the build at <repo>/frontend/dist, i.e. /app/frontend/dist here.
 COPY --from=frontend /build/dist /app/frontend/dist
 
-# SQLite lives on a persistent volume mounted at /data (see fly.toml).
+# SQLite lives on a persistent volume mounted at /data (mount the host dir at runtime).
 ENV DATABASE_URL=sqlite:////data/moneymoney.db
 ENV POLL_INTERVAL_SECONDS=60
 

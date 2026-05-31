@@ -45,30 +45,17 @@ source .venv/bin/activate
 pytest
 ```
 
-## Deployment (Fly.io)
+## Deployment
 
 A multi-stage `Dockerfile` builds the PWA and runs the backend (which serves the PWA + API
-and runs the poller). `fly.toml` keeps one machine always-on (so polling never stops) and
-mounts a persistent volume for the SQLite file.
-
-> Not yet built against a live Docker daemon — run `docker build .` locally once to confirm
-> before first deploy.
-
-```bash
-fly launch --no-deploy                 # create the app (keep the generated app name in fly.toml)
-fly volumes create moneymoney_data --size 1 --region yyz
-fly secrets set \
-  GMAIL_ADDRESS="your-inbox@gmail.com" \
-  GMAIL_APP_PASSWORD="xxxx xxxx xxxx xxxx" \
-  APP_USERNAME="me" \
-  APP_PASSWORD="a-long-random-password"
-fly deploy
-```
+and runs the poller). Deploy target: a free Oracle Cloud VM, reachable privately from your
+iPhone over Tailscale (no public ports). See [`DEPLOY.md`](./DEPLOY.md) for the full
+walkthrough.
 
 ## Security
 
-- Secrets (Gmail app password, `APP_PASSWORD`) live in `.env` locally and Fly **secrets** in
-  production — never committed.
+- Secrets (Gmail app password, `APP_PASSWORD`) live in `.env` locally and are passed as env
+  vars to the container in production — never committed.
 - The API is protected by HTTP Basic auth whenever `APP_PASSWORD` is set. **Set it before any
-  public deploy** so transaction data isn't exposed. Auth is disabled locally when unset.
+  remote deploy** so transaction data isn't exposed. Auth is disabled locally when unset.
 - All transaction data is sensitive and stays in the host-private SQLite volume.
