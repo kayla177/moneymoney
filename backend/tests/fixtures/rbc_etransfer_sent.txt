@@ -1,0 +1,19 @@
+Transfer Details
+
+Date:
+
+May 28, 2026
+
+Reference Number:
+
+C1A9Sn4hZE8S
+
+Message:
+
+Rent for June 2026 (123 Example Ave, Unit 1, A1A1A1)
+The $1,200.00 (CAD) you sent to jane.doe@example.com(JANE DOE) has been successfully deposited.
+Hi ALEX SMITH,
+Your transfer to jane.doe@example.com(JANE DOE) was successfully deposited.
+The $1,200.00 (CAD) you sent to jane.doe@example.com(JANE DOE) has been successfully deposited.
+
+This email was sent to you by Interac Corp., the owner of the Interac e-Transfer service, on behalf of RBC Royal Bank

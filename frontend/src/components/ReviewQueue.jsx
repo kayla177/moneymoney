@@ -70,19 +70,24 @@ function ReviewCard({ txn, categories, onConfirm }) {
       />
 
       <div className="row" style={{ marginTop: 12 }}>
-        <label className="muted">
-          <input
-            type="checkbox"
-            checked={learn}
-            onChange={(e) => setLearn(e.target.checked)}
-            style={{ marginRight: 6 }}
-          />
-          Remember this merchant
-        </label>
+        {/* "Remember" only makes sense when there's a merchant to learn (Scotia has none). */}
+        {txn.raw_merchant ? (
+          <label className="muted">
+            <input
+              type="checkbox"
+              checked={learn}
+              onChange={(e) => setLearn(e.target.checked)}
+              style={{ marginRight: 6 }}
+            />
+            Remember this merchant
+          </label>
+        ) : (
+          <span />
+        )}
         <button
           className="primary"
           disabled={!cat}
-          onClick={() => onConfirm(txn, cat, sub, learn)}
+          onClick={() => onConfirm(txn, cat, sub, txn.raw_merchant ? learn : false)}
         >
           Save
         </button>

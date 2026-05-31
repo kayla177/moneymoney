@@ -6,10 +6,11 @@ To add a bank, implement the BankParser protocol (see base.py) and add it to PAR
 from __future__ import annotations
 
 from app.parsing.base import BankParser, EmailMessage, ParsedTransaction
+from app.parsing.etransfer import EtransferParser
 from app.parsing.rbc import RbcParser
 from app.parsing.scotia import ScotiaParser
 
-PARSERS: list[BankParser] = [RbcParser(), ScotiaParser()]
+PARSERS: list[BankParser] = [RbcParser(), ScotiaParser(), EtransferParser()]
 
 
 def parse_email(

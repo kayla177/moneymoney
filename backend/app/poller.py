@@ -54,6 +54,7 @@ def ingest_email(
         currency=parsed.currency,
         raw_merchant=parsed.raw_merchant,
         source=parsed.source,
+        note=parsed.note,
         raw_email_id=email_uid,
     )
     session.add(txn)

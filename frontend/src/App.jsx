@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { api } from "./api.js";
 import ReviewQueue from "./components/ReviewQueue.jsx";
+import AddTransaction from "./components/AddTransaction.jsx";
 import Transactions from "./components/Transactions.jsx";
 import Analysis from "./components/Analysis.jsx";
 
 const TABS = [
   { id: "review", label: "Review" },
+  { id: "add", label: "Add" },
   { id: "transactions", label: "Transactions" },
   { id: "analysis", label: "Analysis" },
 ];
@@ -32,6 +34,9 @@ export default function App() {
     <div className="app">
       {tab === "review" && (
         <ReviewQueue categories={categories} onChange={refreshReviewCount} />
+      )}
+      {tab === "add" && (
+        <AddTransaction categories={categories} onAdded={refreshReviewCount} />
       )}
       {tab === "transactions" && <Transactions categories={categories} />}
       {tab === "analysis" && <Analysis />}

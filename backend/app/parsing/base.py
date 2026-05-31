@@ -24,6 +24,7 @@ class ParsedTransaction:
     raw_merchant: str
     date: datetime
     source: str
+    note: str | None = None
 
 
 @dataclass

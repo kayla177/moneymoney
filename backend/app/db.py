@@ -17,6 +17,8 @@ DEFAULT_CATEGORIES: dict[str, list[str]] = {
     "Bills": ["Phone", "Internet", "Utilities", "Subscriptions"],
     "Entertainment": ["Streaming", "Events", "Games", "Hobbies"],
     "Health": ["Pharmacy", "Fitness", "Medical"],
+    "Housing": ["Rent", "Utilities"],
+    "Transfers": ["People", "Other"],
     "Other": ["Uncategorized"],
 }
 

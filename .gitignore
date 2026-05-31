@@ -13,6 +13,9 @@ __pycache__/
 venv/
 .pytest_cache/
 
+# Runtime logs
+*.log
+
 # Node / frontend
 node_modules/
 dist/
