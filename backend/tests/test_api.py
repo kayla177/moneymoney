@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
+from app.api.auth import require_auth
 from app.api.deps import get_db
 from app.main import app
 
@@ -13,6 +14,7 @@ from app.main import app
 def client(session):
     """A TestClient whose DB dependency is the isolated in-memory test session."""
     app.dependency_overrides[get_db] = lambda: session
+    app.dependency_overrides[require_auth] = lambda: None
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
