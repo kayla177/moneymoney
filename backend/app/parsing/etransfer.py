@@ -15,7 +15,15 @@ from datetime import datetime
 
 from app.parsing.base import EmailMessage, ParsedTransaction, parse_amount
 
-_RECIPIENT_RE = re.compile(r"sent to\s+\S+?\(([^)]+)\)", re.IGNORECASE)
+# Recipient appears in two real-world shapes:
+#   1) "sent to jane.doe@example.com(JANE DOE)"  — when recipient is a raw email
+#   2) "sent to YIMING HUANG"                    — when recipient is a saved contact
+# We try the parenthesized form first (more specific), then fall back to the plain name.
+_RECIPIENT_PARENS_RE = re.compile(r"(?:sent|transfer) to\s+\S+?\(([^)]+)\)", re.IGNORECASE)
+_RECIPIENT_PLAIN_RE = re.compile(
+    r"(?:sent|transfer) to\s+([A-Z][A-Z .'-]{1,60}?)\s+(?:has|was|successfully)",
+    re.IGNORECASE,
+)
 _DATE_RE = re.compile(r"([A-Z][a-z]+ \d{1,2}, \d{4})")
 _CURRENCY_RE = re.compile(r"\((CAD|USD)\)")
 _MESSAGE_RE = re.compile(r"Message:\s*(?:\n\s*)*([^\n]+)", re.IGNORECASE)
@@ -39,7 +47,7 @@ class EtransferParser:
         currency_match = _CURRENCY_RE.search(email.body)
         currency = currency_match.group(1) if currency_match else "CAD"
 
-        recipient_match = _RECIPIENT_RE.search(email.body)
+        recipient_match = _RECIPIENT_PARENS_RE.search(email.body) or _RECIPIENT_PLAIN_RE.search(email.body)
         recipient = recipient_match.group(1).strip() if recipient_match else ""
 
         message_match = _MESSAGE_RE.search(email.body)

@@ -96,6 +96,22 @@ def test_etransfer_parses_amount_date_recipient_and_message():
     assert result.source == "etransfer"
 
 
+def test_etransfer_parses_recipient_when_no_email_in_parens():
+    # Real Interac format when the recipient is a saved contact (not a raw email):
+    # body says "sent to YIMING HUANG" with no "(NAME)" form to match against.
+    email = EmailMessage(
+        subject="INTERAC e-Transfer: Your transfer was deposited",
+        body=(Path(__file__).parent / "fixtures" / "etransfer_contact.txt").read_text(),
+        sender="catch@payments.interac.ca",
+        date=datetime(2026, 6, 1),
+    )
+    result = EtransferParser().parse(email)
+    assert result is not None
+    assert result.amount == Decimal("1.50")
+    assert result.raw_merchant == "YIMING HUANG"
+    assert result.note == "test email"
+
+
 # ---- RBC credit card ---------------------------------------------------------
 
 
