@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
@@ -148,6 +148,46 @@ def update_transaction(
             subcategory_id=payload.subcategory_id,
         )
     return txn
+
+
+# ---- image import ------------------------------------------------------------
+
+
+class ImportImageResponse(BaseModel):
+    imported: int
+    skipped_duplicates: int
+    needs_review: int
+
+
+@router.post("/transactions/from-image", response_model=ImportImageResponse)
+async def import_from_image(
+    image: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    """Pull transactions out of a statement screenshot via GPT-4o vision.
+
+    Returns counts of newly-imported vs skipped (duplicate) vs review-queue. The actual
+    transactions go into the same DB tables as poller-captured ones; check the Review
+    tab for any that landed without a category.
+    """
+    from app import image_extract  # lazy: openai SDK only loaded for this endpoint
+
+    image_bytes = await image.read()
+    try:
+        extracted = image_extract.extract_from_image(image_bytes, db)
+    except image_extract.ImageExtractError as e:
+        msg = str(e)
+        # "not configured" is the operator's problem; everything else is a 502 upstream
+        # failure (bad model output, OpenAI down, image too large, etc.).
+        status = 503 if "not configured" in msg else 502
+        raise HTTPException(status_code=status, detail=msg)
+
+    result = image_extract.ingest_extracted(db, extracted)
+    return ImportImageResponse(
+        imported=result.imported,
+        skipped_duplicates=result.skipped_duplicates,
+        needs_review=result.needs_review,
+    )
 
 
 # ---- analysis ----------------------------------------------------------------

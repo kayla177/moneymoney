@@ -30,6 +30,27 @@ export const api = {
     request(`/transactions/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
 
   getAnalysis: (month) => request(`/analysis?month=${month}`),
+
+  // Image import uses multipart/form-data so we don't go through `request`
+  // (which would force a JSON content-type and break the boundary).
+  importFromImage: async (file) => {
+    const formData = new FormData();
+    formData.append("image", file);
+    const resp = await fetch("/api/transactions/from-image", {
+      method: "POST",
+      body: formData,
+    });
+    if (!resp.ok) {
+      // The backend includes a useful "detail" string for 5xx errors.
+      let detail = `HTTP ${resp.status}`;
+      try {
+        const body = await resp.json();
+        if (body.detail) detail = body.detail;
+      } catch (_) { /* keep status */ }
+      throw new Error(detail);
+    }
+    return resp.json();
+  },
 };
 
 export function currentMonth() {

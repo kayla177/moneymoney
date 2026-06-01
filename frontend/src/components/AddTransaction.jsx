@@ -1,14 +1,23 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { api } from "../api.js";
 import CategoryPicker from "./CategoryPicker.jsx";
 
-// Quick manual entry — the "fast-manual" capture fallback for cash purchases or card
-// charges that fall under the bank's email-alert threshold. A few taps, no app-switching.
+// Two ways to add transactions:
+// 1) Screenshot import — upload a statement screenshot, GPT-4o extracts each line.
+// 2) Manual entry — for cash purchases or charges under the bank's alert threshold.
 function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
 export default function AddTransaction({ categories, onAdded }) {
+  // ---- image-import state ----
+  const [file, setFile] = useState(null);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState(null);
+  const [importError, setImportError] = useState(null);
+  const fileInputRef = useRef(null);
+
+  // ---- manual-entry state ----
   const [amount, setAmount] = useState("");
   const [merchant, setMerchant] = useState("");
   const [date, setDate] = useState(today());
@@ -42,12 +51,78 @@ export default function AddTransaction({ categories, onAdded }) {
     onAdded?.();
   };
 
+  const processImage = async () => {
+    if (!file) return;
+    setImporting(true);
+    setImportError(null);
+    setImportResult(null);
+    try {
+      const result = await api.importFromImage(file);
+      setImportResult(result);
+      setFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      onAdded?.();
+    } catch (e) {
+      setImportError(e.message);
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const valid = amount && Number(amount) > 0;
 
   return (
     <div>
       <h1>Add</h1>
-      <p className="muted">Log a cash or small purchase manually.</p>
+
+      <div className="card">
+        <label className="muted">📷 From screenshot</label>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            setFile(e.target.files?.[0] || null);
+            setImportResult(null);
+            setImportError(null);
+          }}
+          style={{ width: "100%", marginTop: 8, marginBottom: 8 }}
+        />
+        {file && (
+          <p className="muted">
+            {file.name} · {Math.round(file.size / 1024)} KB
+          </p>
+        )}
+        <button
+          className="primary"
+          disabled={!file || importing}
+          onClick={processImage}
+          style={{ width: "100%", marginTop: 8 }}
+        >
+          {importing ? "PROCESSING…" : "PROCESS"}
+        </button>
+        {importResult && (
+          <p className="muted" style={{ marginTop: 10 }}>
+            ✓ Imported {importResult.imported}
+            {importResult.skipped_duplicates > 0 &&
+              ` · skipped ${importResult.skipped_duplicates} dupes`}
+            {importResult.needs_review > 0 &&
+              ` · ${importResult.needs_review} need review`}
+          </p>
+        )}
+        {importError && (
+          <p style={{ marginTop: 10, color: "var(--danger)", fontSize: 8 }}>
+            ✗ {importError}
+          </p>
+        )}
+      </div>
+
+      <p
+        className="muted"
+        style={{ textAlign: "center", margin: "18px 4px" }}
+      >
+        — or add manually —
+      </p>
 
       <div className="card">
         <label className="muted">Amount</label>
@@ -97,7 +172,12 @@ export default function AddTransaction({ categories, onAdded }) {
           style={{ width: "100%", marginBottom: 12 }}
         />
 
-        <button className="primary" disabled={!valid} onClick={save} style={{ width: "100%" }}>
+        <button
+          className="primary"
+          disabled={!valid}
+          onClick={save}
+          style={{ width: "100%" }}
+        >
           {saved ? "✓ SAVED" : "SAVE"}
         </button>
       </div>
