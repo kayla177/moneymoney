@@ -5,11 +5,12 @@ import AddTransaction from "./components/AddTransaction.jsx";
 import Transactions from "./components/Transactions.jsx";
 import Analysis from "./components/Analysis.jsx";
 
+// Tab labels abbreviated to fit Press Start 2P at iPhone width — full words wrap.
 const TABS = [
-  { id: "review", label: "Review" },
-  { id: "add", label: "Add" },
-  { id: "transactions", label: "Transactions" },
-  { id: "analysis", label: "Analysis" },
+  { id: "review", label: "REV" },
+  { id: "add", label: "ADD" },
+  { id: "transactions", label: "TXN" },
+  { id: "analysis", label: "STA" },
 ];
 
 export default function App() {

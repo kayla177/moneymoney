@@ -11,7 +11,8 @@ import {
 } from "recharts";
 import { api, currentMonth, formatMoney } from "../api.js";
 
-const COLORS = ["#2dd4bf", "#60a5fa", "#f472b6", "#facc15", "#a78bfa", "#fb923c", "#94a3b8"];
+// Wood-tone palette to match the rest of the UI.
+const COLORS = ["#8b5a2b", "#c19a6b", "#a4774f", "#6b3410", "#d4a373", "#5d3a1a", "#b8860b"];
 
 // Monthly analysis: headline total, vs-last-month, category breakdown, per-day trend,
 // and top merchants.
@@ -46,7 +47,7 @@ export default function Analysis() {
         <div className="muted">Total spent</div>
         <div className="stat">{formatMoney(data.total)}</div>
         <div className={`delta ${delta > 0 ? "up" : "down"}`}>
-          {delta > 0 ? "▲" : "▼"} {formatMoney(Math.abs(delta))} vs last month
+          {delta > 0 ? "⬆" : "⬇"} {formatMoney(Math.abs(delta))} vs last month
         </div>
         <div className="muted" style={{ marginTop: 4 }}>
           {data.transaction_count} transactions
@@ -74,9 +75,9 @@ export default function Analysis() {
           <div className="muted">Spend by day</div>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={byDay}>
-              <XAxis dataKey="day" stroke="#93a1b5" fontSize={11} />
+              <XAxis dataKey="day" stroke="#5d3a1a" fontSize={10} />
               <Tooltip formatter={(v) => formatMoney(v)} />
-              <Bar dataKey="total" fill="#2dd4bf" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="total" fill="#6b3410" />
             </BarChart>
           </ResponsiveContainer>
         </div>

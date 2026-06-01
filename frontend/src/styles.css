@@ -1,102 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* MoneyMoney — Stardew Valley theme. Wood-panel cards, parchment background,
+   Press Start 2P everywhere, hard pixel corners. */
+
 :root {
-  --bg: #0b1120;
-  --surface: #131c2e;
-  --surface-2: #1c2840;
-  --text: #e6edf6;
-  --muted: #93a1b5;
-  --accent: #2dd4bf;
-  --accent-strong: #0f766e;
-  --danger: #f87171;
-  --radius: 14px;
+  --bg: #f5e0a4;        /* parchment background */
+  --surface: #c19a6b;   /* wood-panel card body */
+  --surface-2: #d4a373; /* lighter wood for chips/inputs */
+  --paper: #fdf6e3;     /* inputs / inset surfaces */
+  --text: #3a2410;      /* dark wood-brown */
+  --text-light: #fff7e3;/* on dark wood */
+  --muted: #5d3a1a;     /* sub-text / dates */
+  --accent: #6b3410;    /* deep wood — buttons, amounts */
+  --accent-strong: #8b5a2b;
+  --gold: #b8860b;
+  --danger: #b04a2b;
+  --shadow: #3a2410;    /* pixel drop-shadow + rivets */
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  font-size: 10px;
+  line-height: 1.8;
   background: var(--bg);
   color: var(--text);
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: none;
+  image-rendering: pixelated;
 }
 
 .app {
   max-width: 520px;
   margin: 0 auto;
-  padding: 16px 16px 96px;
+  padding: 16px 16px 110px;
 }
 
+/* Wooden-sign page title */
 h1 {
-  font-size: 1.4rem;
-  margin: 8px 0 4px;
+  background: var(--accent-strong);
+  color: var(--text-light);
+  text-align: center;
+  font-size: 14px;
+  padding: 10px 12px;
+  border: 3px solid var(--shadow);
+  box-shadow: 4px 4px 0 var(--shadow);
+  margin: 8px 4px 18px;
+  letter-spacing: 1px;
 }
 
 .muted {
   color: var(--muted);
+  font-size: 8px;
+  line-height: 1.7;
 }
 
+/* Wood-panel card with corner rivets */
 .card {
+  position: relative;
   background: var(--surface);
-  border-radius: var(--radius);
-  padding: 16px;
-  margin-bottom: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 3px solid var(--shadow);
+  padding: 16px 12px 12px;
+  margin-bottom: 14px;
+  box-shadow: 4px 4px 0 var(--shadow);
+  border-radius: 0;
 }
+.card::before,
+.card::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  width: 6px;
+  height: 6px;
+  background: var(--shadow);
+}
+.card::before { left: 5px; }
+.card::after  { right: 5px; }
 
 .row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-}
-
-.amount {
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
+  gap: 10px;
 }
 
 .merchant {
-  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.amount {
+  white-space: nowrap;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
 }
 
 .tag {
   display: inline-block;
-  font-size: 0.75rem;
-  padding: 2px 8px;
-  border-radius: 999px;
+  font-size: 7px;
+  padding: 4px 6px;
   background: var(--surface-2);
-  color: var(--muted);
+  color: var(--text);
+  border: 2px solid var(--shadow);
+  text-transform: uppercase;
+  line-height: 1;
 }
-
 .tag.review {
-  background: rgba(248, 113, 113, 0.15);
-  color: var(--danger);
+  background: var(--danger);
+  color: var(--text-light);
 }
 
+/* Form controls */
 select,
 input,
 button {
   font: inherit;
+  font-size: 10px;
   color: var(--text);
-  background: var(--surface-2);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
+  background: var(--paper);
+  border: 3px solid var(--shadow);
+  border-radius: 0;
   padding: 8px 10px;
+}
+
+input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  accent-color: var(--accent);
 }
 
 button {
   cursor: pointer;
+  background: var(--surface-2);
+  box-shadow: 3px 3px 0 var(--shadow);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+button:active:not(:disabled) {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 button.primary {
-  background: var(--accent-strong);
-  border-color: var(--accent-strong);
-  color: white;
-  font-weight: 600;
+  background: var(--accent);
+  color: var(--text-light);
 }
 
+/* Chips — used by CategoryPicker */
 .chips {
   display: flex;
   flex-wrap: wrap;
@@ -105,68 +171,86 @@ button.primary {
 }
 
 .chip {
-  padding: 6px 12px;
-  border-radius: 999px;
+  padding: 8px 10px;
   background: var(--surface-2);
-  border: 1px solid transparent;
+  border: 3px solid var(--shadow);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 9px;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--shadow);
 }
 
 .chip.selected {
-  border-color: var(--accent);
-  color: var(--accent);
+  background: var(--accent);
+  color: var(--text-light);
+  transform: translate(3px, 3px);
+  box-shadow: none;
 }
 
+/* Headline number on Analysis */
 .stat {
-  font-size: 2rem;
+  font-size: 22px;
   font-weight: 700;
+  color: var(--accent);
+  margin: 6px 0;
   font-variant-numeric: tabular-nums;
 }
 
-.delta.up {
-  color: var(--danger);
+.delta {
+  font-size: 9px;
+  margin-top: 4px;
 }
-.delta.down {
-  color: var(--accent);
-}
+.delta.up   { color: var(--danger); }
+.delta.down { color: var(--accent); }
 
+/* Bottom tabbar — dark-wood toolbar */
 .tabbar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   display: flex;
-  background: var(--surface);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 8px env(safe-area-inset-right) calc(8px + env(safe-area-inset-bottom));
+  background: var(--accent);
+  border-top: 4px solid var(--shadow);
+  padding: 6px env(safe-area-inset-right) calc(6px + env(safe-area-inset-bottom));
 }
 
 .tabbar button {
   flex: 1;
   background: transparent;
   border: none;
-  color: var(--muted);
-  padding: 10px 0;
+  color: var(--surface-2);
+  padding: 12px 0;
+  font-size: 10px;
+  letter-spacing: 1px;
   position: relative;
+  box-shadow: none;
 }
-
+.tabbar button:active:not(:disabled) {
+  transform: none;
+}
 .tabbar button.active {
-  color: var(--accent);
-  font-weight: 600;
+  color: var(--text-light);
+  text-shadow: 1px 1px 0 var(--shadow);
 }
 
 .badge {
   position: absolute;
-  top: 2px;
-  right: 28%;
+  top: 4px;
+  right: 22%;
   background: var(--danger);
-  color: white;
-  font-size: 0.65rem;
-  border-radius: 999px;
-  padding: 0 6px;
+  color: var(--text-light);
+  font-size: 7px;
+  padding: 2px 4px;
+  border: 2px solid var(--shadow);
+  line-height: 1;
 }
 
 .empty {
   text-align: center;
   color: var(--muted);
-  padding: 40px 0;
+  padding: 40px 12px;
+  font-size: 10px;
+  line-height: 2;
 }

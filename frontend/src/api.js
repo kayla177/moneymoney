@@ -37,9 +37,13 @@ export function currentMonth() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
-export function formatMoney(amount, currency = "CAD") {
-  return new Intl.NumberFormat("en-CA", {
-    style: "currency",
-    currency,
+// Money is always displayed with the gold-coin prefix (Stardew Valley theme).
+// Currency code is accepted for API compatibility but not shown — all current
+// transactions are CAD; if multi-currency ever matters we'll surface it explicitly.
+export function formatMoney(amount, _currency = "CAD") {
+  const formatted = new Intl.NumberFormat("en-CA", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(Number(amount || 0));
+  return `⛁ ${formatted}`;
 }

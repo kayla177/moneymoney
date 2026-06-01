@@ -79,7 +79,7 @@ function ReviewCard({ txn, categories, onConfirm }) {
               onChange={(e) => setLearn(e.target.checked)}
               style={{ marginRight: 6 }}
             />
-            Remember this merchant
+            Remember
           </label>
         ) : (
           <span />
@@ -89,7 +89,7 @@ function ReviewCard({ txn, categories, onConfirm }) {
           disabled={!cat}
           onClick={() => onConfirm(txn, cat, sub, txn.raw_merchant ? learn : false)}
         >
-          Save
+          SAVE
         </button>
       </div>
     </div>

@@ -98,7 +98,7 @@ export default function AddTransaction({ categories, onAdded }) {
         />
 
         <button className="primary" disabled={!valid} onClick={save} style={{ width: "100%" }}>
-          {saved ? "✓ Saved" : "Save transaction"}
+          {saved ? "✓ SAVED" : "SAVE"}
         </button>
       </div>
     </div>

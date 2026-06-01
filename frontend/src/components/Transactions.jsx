@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, currentMonth, formatMoney } from "../api.js";
+import { iconFor } from "../categoryIcons.js";
 import CategoryPicker from "./CategoryPicker.jsx";
 
 // Searchable, month-scoped list of all transactions. Tap one to recategorize or edit it.
@@ -60,7 +61,9 @@ export default function Transactions({ categories }) {
           >
             <span className="muted">{new Date(t.date).toLocaleDateString()}</span>
             <span className={`tag ${t.status === "needs_review" ? "review" : ""}`}>
-              {catName[t.category_id] || "Uncategorized"}
+              {t.category_id
+                ? `${iconFor(catName[t.category_id])} ${catName[t.category_id]}`
+                : "Uncategorized"}
             </span>
           </div>
           {t.note && editingId !== t.id && (
@@ -108,7 +111,7 @@ function EditRow({ txn, categories, onSave }) {
               onChange={(e) => setLearn(e.target.checked)}
               style={{ marginRight: 6 }}
             />
-            Remember this merchant
+            Remember
           </label>
         ) : (
           <span />
@@ -125,7 +128,7 @@ function EditRow({ txn, categories, onSave }) {
             })
           }
         >
-          Save
+          SAVE
         </button>
       </div>
     </div>

@@ -1,3 +1,5 @@
+import { iconFor } from "../categoryIcons.js";
+
 // Two-step picker: choose a category (chips), then a subcategory (chips).
 // Calls onPick(categoryId, subcategoryId) once a category is chosen; subcategory optional.
 export default function CategoryPicker({ categories, selectedCategory, selectedSub, onPick }) {
@@ -11,7 +13,7 @@ export default function CategoryPicker({ categories, selectedCategory, selectedS
             className={`chip ${selectedCategory === c.id ? "selected" : ""}`}
             onClick={() => onPick(c.id, null)}
           >
-            {c.name}
+            {iconFor(c.name)} {c.name.toUpperCase()}
           </button>
         ))}
       </div>
@@ -23,7 +25,7 @@ export default function CategoryPicker({ categories, selectedCategory, selectedS
               className={`chip ${selectedSub === s.id ? "selected" : ""}`}
               onClick={() => onPick(active.id, s.id)}
             >
-              {s.name}
+              {s.name.toUpperCase()}
             </button>
           ))}
         </div>
