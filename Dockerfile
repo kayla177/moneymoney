@@ -11,7 +11,13 @@ FROM python:3.11-slim
 WORKDIR /app/backend
 
 COPY backend/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+# Install in two passes and skip .pyc compilation: the 1 GB Oracle VM OOMs if pip
+# resolves and installs all of these at once. Splitting halves peak memory.
+RUN grep -vE '^(openai|python-multipart)' requirements.txt > /tmp/req-core.txt \
+ && pip install --no-cache-dir --no-compile -r /tmp/req-core.txt \
+ && grep -E '^(openai|python-multipart)' requirements.txt > /tmp/req-ai.txt \
+ && pip install --no-cache-dir --no-compile -r /tmp/req-ai.txt \
+ && rm /tmp/req-core.txt /tmp/req-ai.txt
 
 COPY backend/ ./
 # main.py looks for the build at <repo>/frontend/dist, i.e. /app/frontend/dist here.
