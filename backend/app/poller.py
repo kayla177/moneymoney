@@ -66,21 +66,29 @@ def ingest_email(
 
 
 def poll_once() -> int:
-    """Connect to Gmail over IMAP, ingest unseen emails, return how many transactions made.
+    """Connect to Gmail over IMAP, ingest new emails, return how many transactions made.
 
     Requires GMAIL_ADDRESS / GMAIL_APP_PASSWORD env vars. Imported lazily so the rest of
     the app (and tests) don't require imap-tools or credentials.
+
+    Dedup is handled in `ingest_email` via the ProcessedEmail table (keyed on UID), so we
+    don't rely on IMAP's seen-flag — which gets toggled whenever the user opens an email
+    in Gmail's UI and would cause us to silently skip it. We scan a rolling window so
+    each poll stays cheap even as the mailbox grows.
     """
+    from datetime import date, timedelta
+
     from imap_tools import AND, MailBox
 
     host = os.environ.get("GMAIL_IMAP_HOST", "imap.gmail.com")
     address = os.environ["GMAIL_ADDRESS"]
     password = os.environ["GMAIL_APP_PASSWORD"]
+    window_days = int(os.environ.get("POLL_WINDOW_DAYS", "7"))
+    since = date.today() - timedelta(days=window_days)
 
     created = 0
     with MailBox(host).login(address, password) as mailbox:
-        # Fetch unseen messages; mark them seen so each is handled once.
-        for msg in mailbox.fetch(AND(seen=False), mark_seen=True):
+        for msg in mailbox.fetch(AND(date_gte=since), mark_seen=False):
             email = EmailMessage(
                 subject=msg.subject or "",
                 body=msg.text or msg.html or "",
