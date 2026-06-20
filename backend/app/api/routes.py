@@ -12,6 +12,7 @@ from decimal import Decimal
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from pydantic import BaseModel
+from sqlalchemy import func
 from sqlmodel import Session, select
 
 from app import analysis, categorize, models
@@ -50,8 +51,14 @@ class TransactionUpdate(BaseModel):
     category_id: int | None = None
     subcategory_id: int | None = None
     note: str | None = None
+    # Rename a transaction (e.g. label a blank "(no merchant)" Scotia transfer).
+    raw_merchant: str | None = None
     # When true, remember this merchant -> category mapping for next time.
     learn: bool = False
+
+
+class CategoryCreate(BaseModel):
+    name: str
 
 
 # ---- categories --------------------------------------------------------------
@@ -70,6 +77,38 @@ def list_categories(db: Session = Depends(get_db)):
         CategoryOut(id=c.id, name=c.name, subcategories=by_cat.get(c.id, []))
         for c in categories
     ]
+
+
+@router.post("/categories", response_model=CategoryOut)
+def create_category(payload: CategoryCreate, db: Session = Depends(get_db)):
+    """Create a custom category by name. Idempotent: an existing category with the
+    same name (case-insensitive) is returned instead of creating a duplicate."""
+    name = payload.name.strip()
+    if not name:
+        raise HTTPException(status_code=422, detail="name must not be empty")
+
+    existing = db.exec(
+        select(models.Category).where(
+            func.lower(models.Category.name) == name.lower()
+        )
+    ).first()
+    if existing is not None:
+        subs = db.exec(
+            select(models.Subcategory).where(
+                models.Subcategory.category_id == existing.id
+            )
+        ).all()
+        return CategoryOut(
+            id=existing.id,
+            name=existing.name,
+            subcategories=[SubcategoryOut(id=s.id, name=s.name) for s in subs],
+        )
+
+    category = models.Category(name=name)
+    db.add(category)
+    db.commit()
+    db.refresh(category)
+    return CategoryOut(id=category.id, name=category.name, subcategories=[])
 
 
 # ---- transactions ------------------------------------------------------------
@@ -135,6 +174,8 @@ def update_transaction(
         txn.status = TransactionStatus.confirmed
     if payload.note is not None:
         txn.note = payload.note
+    if payload.raw_merchant is not None:
+        txn.raw_merchant = payload.raw_merchant
 
     db.add(txn)
     db.commit()

@@ -15,6 +15,9 @@ async function request(path, options) {
 export const api = {
   getCategories: () => request("/categories"),
 
+  createCategory: (name) =>
+    request("/categories", { method: "POST", body: JSON.stringify({ name }) }),
+
   getTransactions: ({ month, status } = {}) => {
     const params = new URLSearchParams();
     if (month) params.set("month", month);

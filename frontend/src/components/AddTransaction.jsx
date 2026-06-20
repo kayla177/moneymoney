@@ -9,7 +9,7 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export default function AddTransaction({ categories, onAdded }) {
+export default function AddTransaction({ categories, onAdded, onCreateCategory }) {
   // ---- image-import state ----
   const [file, setFile] = useState(null);
   const [importing, setImporting] = useState(false);
@@ -156,6 +156,7 @@ export default function AddTransaction({ categories, onAdded }) {
           categories={categories}
           selectedCategory={cat}
           selectedSub={sub}
+          onCreateCategory={onCreateCategory}
           onPick={(c, s) => {
             setCat(c);
             setSub(s);

@@ -4,7 +4,7 @@ import CategoryPicker from "./CategoryPicker.jsx";
 
 // The review queue: transactions the parser captured but couldn't confidently categorize.
 // Categorizing one (optionally "learn" so the merchant sticks) removes it from the queue.
-export default function ReviewQueue({ categories, onChange }) {
+export default function ReviewQueue({ categories, onChange, onCreateCategory }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,13 +37,19 @@ export default function ReviewQueue({ categories, onChange }) {
         <div className="empty">🎉 Nothing to review — you're all caught up.</div>
       )}
       {items.map((txn) => (
-        <ReviewCard key={txn.id} txn={txn} categories={categories} onConfirm={confirm} />
+        <ReviewCard
+          key={txn.id}
+          txn={txn}
+          categories={categories}
+          onConfirm={confirm}
+          onCreateCategory={onCreateCategory}
+        />
       ))}
     </div>
   );
 }
 
-function ReviewCard({ txn, categories, onConfirm }) {
+function ReviewCard({ txn, categories, onConfirm, onCreateCategory }) {
   const [cat, setCat] = useState(null);
   const [sub, setSub] = useState(null);
   const [learn, setLearn] = useState(true);
@@ -63,6 +69,7 @@ function ReviewCard({ txn, categories, onConfirm }) {
         categories={categories}
         selectedCategory={cat}
         selectedSub={sub}
+        onCreateCategory={onCreateCategory}
         onPick={(c, s) => {
           setCat(c);
           setSub(s);

@@ -19,9 +19,19 @@ export default function App() {
   const [reviewCount, setReviewCount] = useState(0);
 
   // Categories are needed across screens; load once.
-  useEffect(() => {
+  const loadCategories = () =>
     api.getCategories().then(setCategories).catch(() => {});
+  useEffect(() => {
+    loadCategories();
   }, []);
+
+  // Create a custom category, refresh the shared list, and hand the new one back
+  // to the picker so it can select it immediately.
+  const createCategory = async (name) => {
+    const cat = await api.createCategory(name);
+    await loadCategories();
+    return cat;
+  };
 
   const refreshReviewCount = () => {
     api
@@ -34,12 +44,22 @@ export default function App() {
   return (
     <div className="app">
       {tab === "review" && (
-        <ReviewQueue categories={categories} onChange={refreshReviewCount} />
+        <ReviewQueue
+          categories={categories}
+          onCreateCategory={createCategory}
+          onChange={refreshReviewCount}
+        />
       )}
       {tab === "add" && (
-        <AddTransaction categories={categories} onAdded={refreshReviewCount} />
+        <AddTransaction
+          categories={categories}
+          onCreateCategory={createCategory}
+          onAdded={refreshReviewCount}
+        />
       )}
-      {tab === "transactions" && <Transactions categories={categories} />}
+      {tab === "transactions" && (
+        <Transactions categories={categories} onCreateCategory={createCategory} />
+      )}
       {tab === "analysis" && <Analysis />}
 
       <nav className="tabbar">

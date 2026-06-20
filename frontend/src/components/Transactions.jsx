@@ -4,7 +4,7 @@ import { iconFor } from "../categoryIcons.js";
 import CategoryPicker from "./CategoryPicker.jsx";
 
 // Searchable, month-scoped list of all transactions. Tap one to recategorize or edit it.
-export default function Transactions({ categories }) {
+export default function Transactions({ categories, onCreateCategory }) {
   const [month, setMonth] = useState(currentMonth());
   const [items, setItems] = useState([]);
   const [query, setQuery] = useState("");
@@ -71,7 +71,12 @@ export default function Transactions({ categories }) {
           )}
 
           {editingId === t.id && (
-            <EditRow txn={t} categories={categories} onSave={saveEdit} />
+            <EditRow
+              txn={t}
+              categories={categories}
+              onSave={saveEdit}
+              onCreateCategory={onCreateCategory}
+            />
           )}
         </div>
       ))}
@@ -79,7 +84,8 @@ export default function Transactions({ categories }) {
   );
 }
 
-function EditRow({ txn, categories, onSave }) {
+function EditRow({ txn, categories, onSave, onCreateCategory }) {
+  const [name, setName] = useState(txn.raw_merchant || "");
   const [cat, setCat] = useState(txn.category_id);
   const [sub, setSub] = useState(txn.subcategory_id);
   const [note, setNote] = useState(txn.note || "");
@@ -87,10 +93,18 @@ function EditRow({ txn, categories, onSave }) {
 
   return (
     <div style={{ marginTop: 12 }}>
+      <label className="muted">Name</label>
+      <input
+        placeholder="Transaction name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        style={{ width: "100%", margin: "4px 0 12px" }}
+      />
       <CategoryPicker
         categories={categories}
         selectedCategory={cat}
         selectedSub={sub}
+        onCreateCategory={onCreateCategory}
         onPick={(c, s) => {
           setCat(c);
           setSub(s);
@@ -103,7 +117,9 @@ function EditRow({ txn, categories, onSave }) {
         style={{ width: "100%", margin: "12px 0" }}
       />
       <div className="row">
-        {txn.raw_merchant ? (
+        {/* "Remember" learns a merchant -> category mapping, so it needs both a
+            name to match on and a category to apply. */}
+        {name.trim() && cat ? (
           <label className="muted">
             <input
               type="checkbox"
@@ -118,13 +134,14 @@ function EditRow({ txn, categories, onSave }) {
         )}
         <button
           className="primary"
-          disabled={!cat}
+          disabled={!name.trim() && !cat}
           onClick={() =>
             onSave(txn.id, {
+              raw_merchant: name,
               category_id: cat,
               subcategory_id: sub,
               note: note || null,
-              learn: txn.raw_merchant ? learn : false,
+              learn: name.trim() && cat ? learn : false,
             })
           }
         >

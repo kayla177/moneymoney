@@ -100,6 +100,47 @@ def test_filter_transactions_by_status(client):
     assert len(resp.json()) == 1
 
 
+def test_rename_transaction(client):
+    # A blank-merchant transfer, like an RBC -> Scotia internal move.
+    txn = client.post(
+        "/api/transactions",
+        json={"date": "2026-05-10T12:00:00", "amount": "100.00", "raw_merchant": ""},
+    ).json()
+    assert txn["raw_merchant"] == ""
+
+    resp = client.patch(
+        f"/api/transactions/{txn['id']}",
+        json={"raw_merchant": "RBC -> Scotia transfer"},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["raw_merchant"] == "RBC -> Scotia transfer"
+
+
+def test_create_custom_category(client):
+    resp = client.post("/api/categories", json={"name": "Internal Transfer"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["name"] == "Internal Transfer"
+    assert body["subcategories"] == []
+    # It now shows up in the category list.
+    names = [c["name"] for c in client.get("/api/categories").json()]
+    assert "Internal Transfer" in names
+
+
+def test_create_custom_category_is_idempotent(client):
+    first = client.post("/api/categories", json={"name": "Pets"}).json()
+    # Same name (different case / whitespace) returns the existing category.
+    second = client.post("/api/categories", json={"name": "  pets "}).json()
+    assert first["id"] == second["id"]
+    pets = [c for c in client.get("/api/categories").json() if c["name"] == "Pets"]
+    assert len(pets) == 1
+
+
+def test_create_custom_category_rejects_empty(client):
+    resp = client.post("/api/categories", json={"name": "   "})
+    assert resp.status_code == 422
+
+
 def test_analysis_endpoint(client):
     food = _food_id(client)
     client.post(
